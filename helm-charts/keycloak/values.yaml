@@ -1,0 +1,9 @@
+postgres:
+  storage:
+    size: 2Gi              # Default PVC size (Should be in "Gi")
+    storageClassName: ""    # Leave empty to use default storage class
+
+keycloak:
+  credentials:
+    username: admin        # Default Username for Keycloak
+    password: password     # Default Password for Keycloak

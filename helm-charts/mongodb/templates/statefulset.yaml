@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Chart.Name }}
+  annotations:
+spec:
+  serviceName: {{ .Chart.Name }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+      spread: spread-across
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+        spread: spread-across
+    spec:
+      securityContext:
+        fsGroup: 999
+        runAsUser: 999
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            spread: spread-across
+      containers:
+      - name: mongodb
+        image: mongo:8.0.6
+        imagePullPolicy: IfNotPresent
+        command: ["bash"]
+        args: ["-c", "/start-mongodb.sh"]
+        volumeMounts:
+        - name: mongodb-data
+          mountPath: /data/db
+        - name: mongo-script-vol
+          mountPath: /start-mongodb.sh
+          subPath: start-mongodb.sh
+        - name: mongo-config
+          mountPath: /etc/myconfig
+        env:
+        - name: MONGO_INITDB_ROOT_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Chart.Name }}-user
+              key: username
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Chart.Name }}-user
+              key: password
+        - name: MONGODB_SERVICE_SERVICE_HOST
+          value: {{ .Chart.Name }}
+        ports:
+        - name: mongodb
+          containerPort: 27017
+#        livenessProbe:
+#          exec:
+#            command:
+#            - mongosh
+#            - -u
+#            - $MONGO_INITDB_ROOT_USERNAME
+#            - -p
+#            - $MONGO_INITDB_ROOT_PASSWORD
+#            - --eval
+#            - db.adminCommand("ping")
+#          failureThreshold: 3
+#          periodSeconds: 10
+#          #successThreshold: 2
+#          timeoutSeconds: 2
+#          initialDelaySeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - /usr/bin/echo
+            - "hello"
+            - sh
+            - -c
+            - '[ -f /tmp/ready ]'
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          failureThreshold: 5
+          successThreshold: 1
+#            - mongosh
+#            - -u
+#            - $MONGO_INITDB_ROOT_USERNAME
+#            - -p
+#            - $MONGO_INITDB_ROOT_PASSWORD
+#            - --eval
+#            - db.adminCommand("ping")
+#          failureThreshold: 10
+#          periodSeconds: 5
+#          #successThreshold: 2
+#          timeoutSeconds: 2
+          initialDelaySeconds: 10
+      volumes:
+      - name: mongo-config
+        secret:
+          secretName: {{ .Chart.Name }}-config
+          defaultMode: 0400
+      - name: mongo-script-vol
+        configMap:
+          name: {{ .Chart.Name }}-script
+          defaultMode: 0555
+  volumeClaimTemplates:
+  - metadata:
+      name: mongodb-data
+    spec:
+      accessModes:
+      - "ReadWriteOnce"
+      resources:
+        requests:
+          storage: 5Gi

@@ -1,0 +1,27 @@
+global:
+  # image release tag to be used for deployment valid only if use daily build
+  # is set as false
+  releaseTag: latest
+
+  # if deployment should pick today's daliy built deployment image
+  useDailyBuild: true
+
+  # if network-manager is enabled as part of this deployment
+  network-manager:
+    enabled: true
+
+  # if storage-manager is enabled as part of this deployment
+  storage-manager:
+    enabled: true
+
+  # if compute-manager is enabled as part of this deployment
+  compute-manager:
+    enabled: true
+
+  # if object-storage is enabled as part of this deployment
+  object-storage:
+    enabled: true
+
+configdb-mongoexpress:
+  mongo:
+    chart: configdb

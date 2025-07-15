@@ -1,0 +1,29 @@
+# Temporary files when a file is opened with VIM
+*.swo
+*.swp
+
+# Temporary files for mac
+.DS_Store
+
+# VS code files and folders
+.vscode
+__debug_bin
+
+# ignore if any diff present in the repo
+*.diff
+
+# we are designating .bk extension for backup files
+# ignore the same
+*.bk
+
+# ignore chart.lock files created while helm packaging a chart
+*.lock
+
+# ignore pushing tgz bundles to the repo
+*.tgz
+
+# ignore charts directory created for dependencies
+charts
+
+# ignore the distribution directory
+dist

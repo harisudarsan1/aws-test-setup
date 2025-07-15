@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: network-manager
+  labels:
+    app: network-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: network-manager
+  template:
+    metadata:
+      labels:
+        app: network-manager
+    spec:
+      containers:
+      - name: network-manager
+        image: psethi/network-manager:{{ include "helper.imageTag" . }}
+        env:
+        - name: MONGO_CONFIGDB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: configdb-user
+              key: username
+        - name: MONGO_CONFIGDB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: configdb-user
+              key: password
+        volumeMounts:
+        - name: config-vol
+          mountPath: /opt/config.yaml
+          subPath: config.yaml
+      volumes:
+      - name: config-vol
+        configMap:
+          name: network-manager-config
+          defaultMode: 0555

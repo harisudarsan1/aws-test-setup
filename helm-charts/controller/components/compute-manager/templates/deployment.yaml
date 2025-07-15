@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: compute-manager
+  labels:
+    app: compute-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: compute-manager
+  template:
+    metadata:
+      labels:
+        app: compute-manager
+    spec:
+      containers:
+      - name: compute-manager
+        image: psethi/compute-manager:{{ include "helper.imageTag" . }}
+        env:
+        - name: MONGO_CONFIGDB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: configdb-user
+              key: username
+        - name: MONGO_CONFIGDB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: configdb-user
+              key: password
+        volumeMounts:
+        - name: config-vol
+          mountPath: /opt/config.yaml
+          subPath: config.yaml
+      volumes:
+      - name: config-vol
+        configMap:
+          name: compute-manager-config
+          defaultMode: 0555

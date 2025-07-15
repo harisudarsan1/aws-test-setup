@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-config
+data:
+  config.yaml: |
+    configDB:
+      host: configdb
+      port: "27017"
+    keycloak:
+      endpoint: "http://keycloak:8080"

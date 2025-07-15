@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: object-storage-config
+data:
+  config.yaml: |
+    configDB:
+      host: configdb
+      port: "27017"

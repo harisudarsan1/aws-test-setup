@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-express
+  labels:
+    app: mongo-express
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mongo-express
+      spread: spread-across
+  template:
+    metadata:
+      labels:
+        app: mongo-express
+        spread: spread-across
+    spec:
+      containers:
+      - name: mongo-express
+        image: mongo-express:1.0.2-20-alpine3.19
+        ports:
+        - containerPort: 8081
+        env:
+        - name: ME_CONFIG_MONGODB_ADMINUSERNAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.mongo.chart }}-user
+              key: username
+        - name: ME_CONFIG_MONGODB_ADMINPASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.mongo.chart }}-user
+              key: password
+        - name: ME_CONFIG_MONGODB_SERVER
+          value: {{ .Values.mongo.chart }}
+        - name: ME_CONFIG_MONGODB_URL
+          value: mongodb://{{ .Values.mongo.chart }}:27017

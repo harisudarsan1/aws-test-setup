@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storage-manager
+  labels:
+    app: storage-manager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: storage-manager
+  template:
+    metadata:
+      labels:
+        app: storage-manager
+    spec:
+      containers:
+      - name: storage-manager
+        image: psethi/storage-manager:{{ include "helper.imageTag" . }}
+        env:
+        - name: MONGO_CONFIGDB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: configdb-user
+              key: username
+        - name: MONGO_CONFIGDB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: configdb-user
+              key: password
+        volumeMounts:
+        - name: config-vol
+          mountPath: /opt/config.yaml
+          subPath: config.yaml
+      volumes:
+      - name: config-vol
+        configMap:
+          name: storage-manager-config
+          defaultMode: 0555

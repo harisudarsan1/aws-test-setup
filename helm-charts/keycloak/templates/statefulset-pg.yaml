@@ -1,0 +1,61 @@
+# This is deployment of PostgreSQL with an ephemeral storage for testing: Once the Pod stops, the data is lost.
+# For a production setup, replace it with a database setup that persists your data.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: kluiz-control
+  labels:
+    app: postgres
+spec:
+  serviceName: postgres-service
+  replicas: 3
+  selector:
+    matchLabels:
+      app: postgres
+      spread: spread-across
+  template:
+    metadata:
+      labels:
+        app: postgres
+        spread: spread-across
+    spec:
+      containers:
+        - name: postgres
+          image: mirror.gcr.io/postgres:17
+          env:
+            - name: POSTGRES_USER
+              value: "keycloak"
+            - name: POSTGRES_PASSWORD
+              value: "keycloak"
+            - name: POSTGRES_DB
+              value: "keycloak"
+            - name: POSTGRES_LOG_STATEMENT
+              value: "all"
+            - name: PGDATA
+              value: /data/pgdata
+          ports:
+            - name: postgres
+              containerPort: 5432
+          volumeMounts:
+            # Using volume mount for PostgreSQL's data folder as it is otherwise not writable
+            - name: postgres-data
+              mountPath: /data
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            spread: spread-across
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.postgres.storage.size }} 
+{{- if .Values.postgres.storage.storageClassName }}
+      storageClassName: {{ .Values.postgres.storage.storageClassName | quote }}
+{{- end }}
